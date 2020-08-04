@@ -17,3 +17,4 @@ Step7: To  test the Rest API for processing Bank statement, open POSTMAN REST Cl
 POST: http://localhost:8080/rabobank/processStatment , Choose form-data type under request body and choose file as key and Choose 'File' in the Dropdown . Then upload the records.csv and records.xml which was sent as attachment in assignment_BE from your local directory
 
 Step 8 : Go to AssignmentApplicationTests.java , Run As -> Junit test to check the Test cases for both success and failure scenarios
+         The records.csv and records.xml files are saved in the workspace for executing the test case purpose. It has nothing to do with sending POST request to the controller
