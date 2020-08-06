@@ -37,50 +37,77 @@ public class StatementController {
 	@Autowired
 	private ExtractorService extractorService;
 
-	@RequestMapping(value = "/test", method = RequestMethod.GET)
-	public @ResponseBody AppResponse test() throws Exception {
-		AppResponse appResponse = new AppResponse();
-		return appResponse;
-	}
-
 	@RequestMapping(value = "/processStatment", method = RequestMethod.POST)
 	public @ResponseBody AppResponse handleFileUpload(@RequestParam("file") MultipartFile multipart, HttpServletRequest request) throws Exception {
 		AppResponse appResponse = new AppResponse();
-		System.out.println("Content type===>" + multipart.getContentType());
+		
 		if (!multipart.isEmpty()) {
-			if (multipart.getContentType().equalsIgnoreCase(AppConstants.FILE_TYPE_CSV)) {
-				List<Record> errorRecords = new ArrayList<Record>();
+			if (multipart.getContentType().equalsIgnoreCase(AppConstants.FILE_TYPE_CSV)
+				|| multipart.getContentType().equalsIgnoreCase(AppConstants.FILE_TYPE_TXT_CSV)) {
+				
+				List<Record> dupRecords = new ArrayList<Record>();
+				List<Record> endbalRecords = new ArrayList<Record>();
 				
 				String filePath = request.getServletContext().getRealPath("/");
 				File csvFile = new File(filePath + multipart.getOriginalFilename());
 				
 				multipart.transferTo(csvFile);
 				List<Record> extractedRecords = extractorService.extractStatmentFromCSV(csvFile);
-				errorRecords.addAll(validatorService.getDuplicateRecords(extractedRecords));
-				errorRecords.addAll(validatorService.getEndBalanceErrorRecords(extractedRecords));
-				if (!errorRecords.isEmpty()) {
+				dupRecords.addAll(validatorService.getDuplicateRecords(extractedRecords));
+				endbalRecords.addAll(validatorService.getEndBalanceErrorRecords(extractedRecords));
+				
+				if ((!dupRecords.isEmpty() && !endbalRecords.isEmpty())) {
+					
 					appResponse.setResponseCode(AppConstants.HTTP_CODE_SUCCESS);
 					appResponse.setResponseMessage(AppConstants.VALIDATION_SUCCESS);
-					appResponse.setRecords(errorRecords);
-				} else {
+					appResponse.setDuplicateRecords(dupRecords);
+					appResponse.setWrongEndBalRecords(endbalRecords);
+					
+				} else if ((dupRecords.isEmpty() && !endbalRecords.isEmpty())
+						|| (!dupRecords.isEmpty() && endbalRecords.isEmpty())) {
+					
 					appResponse.setResponseCode(AppConstants.HTTP_CODE_ERROR);
 					appResponse.setResponseMessage(AppConstants.VALIDATION_ERROR);
+					appResponse.setDuplicateRecords(dupRecords);
+					appResponse.setWrongEndBalRecords(endbalRecords);
 				}
-			} else if (multipart.getContentType().equalsIgnoreCase(AppConstants.FILE_TYPE_XML)) {
-				List<Record> errorRecords = new ArrayList<Record>();
+			} else if (multipart.getContentType().equalsIgnoreCase(AppConstants.FILE_TYPE_XML)
+					   || multipart.getContentType().equalsIgnoreCase(AppConstants.FILE_TYPE_APPLICATION_XML)) {
+				
+				List<Record> dupRecords = new ArrayList<Record>();
+				List<Record> endbalRecords = new ArrayList<Record>();
+				
 				String filePath = request.getServletContext().getRealPath("/");
 				File xmlFile = new File(filePath + multipart.getOriginalFilename());
 				multipart.transferTo(xmlFile);
+				
 				List<Record> extractedRecords = extractorService.extractStatmentFromXML(xmlFile);
-				errorRecords.addAll(validatorService.getDuplicateRecords(extractedRecords));
-				errorRecords.addAll(validatorService.getEndBalanceErrorRecords(extractedRecords));
-				if (!errorRecords.isEmpty()) {
+				dupRecords.addAll(validatorService.getDuplicateRecords(extractedRecords));
+				endbalRecords.addAll(validatorService.getEndBalanceErrorRecords(extractedRecords));
+				
+				// 200 success scenario when both conditions are met as follows,
+				// Condition 1: If there are duplicate TransactionRef num (Duplicate record validation)
+				// Condition 2: If startbalance - mutation != endbalance (Endbalance validation)
+				
+				if (!dupRecords.isEmpty() && !endbalRecords.isEmpty()) {
+					
 					appResponse.setResponseCode(AppConstants.HTTP_CODE_SUCCESS);
 					appResponse.setResponseMessage(AppConstants.VALIDATION_SUCCESS);
-					appResponse.setRecords(errorRecords);
-				} else {
+					appResponse.setDuplicateRecords(dupRecords);
+					appResponse.setWrongEndBalRecords(endbalRecords);
+					
+				} else if ( dupRecords.isEmpty() && !endbalRecords.isEmpty()
+				          || !dupRecords.isEmpty() && endbalRecords.isEmpty())  {
+					
+					// 500 failure scenario if one of the below condition fails
+					// Condition 1: If there are no duplicate TransactionRef & endbalance record exists
+					// Condition 2:If there are duplicates and no enbalance validation available
+					
+					
 					appResponse.setResponseCode(AppConstants.HTTP_CODE_ERROR);
 					appResponse.setResponseMessage(AppConstants.VALIDATION_ERROR);
+					appResponse.setDuplicateRecords(dupRecords);
+					appResponse.setWrongEndBalRecords(endbalRecords);
 				}
 			} else {
 				appResponse.setResponseCode(AppConstants.HTTP_CODE_INVALID_INPUT);

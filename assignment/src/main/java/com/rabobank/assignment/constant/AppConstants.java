@@ -6,6 +6,7 @@ public class AppConstants {
 	public static final Integer HTTP_CODE_ERROR = 500;
 	public static final Integer HTTP_CODE_INVALID_INPUT = 406;
 	
+	
 	public static final String UNEXPECTED_SERVER_ERROR = "Unexpected server error !!";
 	public static final String VALIDATION_ERROR = "validation error !!";
 	public static final String VALIDATION_SUCCESS = "Validation success !!";
@@ -14,5 +15,8 @@ public class AppConstants {
 	
 	public static final String FILE_TYPE_XML = "text/xml";
 	public static final String FILE_TYPE_CSV = "application/vnd.ms-excel";
+	
+	public static final String FILE_TYPE_APPLICATION_XML = "application/xml";
+	public static final String FILE_TYPE_TXT_CSV = "text/csv";
 
 }

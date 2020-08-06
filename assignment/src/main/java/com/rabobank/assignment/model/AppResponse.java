@@ -6,7 +6,8 @@ public class AppResponse {
 	
 	private String responseMessage;
 	private int responseCode;
-	private List<Record> Records;
+	private List<Record> duplicateRecords;
+	private List<Record> wrongEndBalRecords;
 
 	public String getResponseMessage() {
 		return responseMessage;
@@ -24,17 +25,25 @@ public class AppResponse {
 		this.responseCode = responseCode;
 	}
 
+	public List<Record> getDuplicateRecords() {
+		return duplicateRecords;
+	}
+
+	public void setDuplicateRecords(List<Record> duplicateRecords) {
+		this.duplicateRecords = duplicateRecords;
+	}
+
+	public List<Record> getWrongEndBalRecords() {
+		return wrongEndBalRecords;
+	}
+
+	public void setWrongEndBalRecords(List<Record> wrongEndBalRecords) {
+		this.wrongEndBalRecords = wrongEndBalRecords;
+	}
+
 	@Override
 	public String toString() {
 		return "Error [responseMessage=" + responseMessage + ", responseCode=" + responseCode + "]";
-	}
-
-	public List<Record> getRecords() {
-		return Records;
-	}
-
-	public void setRecords(List<Record> records) {
-		Records = records;
 	}
 
 }
